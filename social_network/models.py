@@ -17,7 +17,6 @@ class User(AbstractUser):
     followed_users = models.ManyToManyField(
         "self",
         blank=True,
-        null=True,
         symmetrical=False,
         related_name="followed_by"
     )
@@ -30,6 +29,16 @@ class User(AbstractUser):
         ordering = ["username"]
 
 
+class Tag(models.Model):
+    title = models.CharField(max_length=75)
+    slug = models.SlugField(null=False, unique=True, default=uuid.uuid1)
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.title)
+        return super().save(*args, **kwargs)
+
+
 class Post(models.Model):
     owner = models.ForeignKey(
         User,
@@ -39,7 +48,10 @@ class Post(models.Model):
     title = models.CharField(max_length=255)
     content = models.TextField()
     created_time = models.DateTimeField(auto_now_add=True)
-    likes = models.ManyToManyField(User, related_name="post_like")
+    likes = models.ManyToManyField(
+        User, related_name="post_like", null=True, blank=True
+    )
+    tags = models.ManyToManyField(Tag, related_name="tags")
 
     class Meta:
         ordering = ["-created_time"]
@@ -70,4 +82,4 @@ class Commentary(models.Model):
         verbose_name_plural = "commentaries"
 
     def __str__(self):
-        return f"{self.user} {self.created_time}"
+        return f"{self.user} {self.created_time.strftime('%Y-%m-%d %H:%M')}"
