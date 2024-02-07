@@ -2,10 +2,11 @@ from django.urls import path
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
-    TokenVerifyView, TokenBlacklistView,
+    TokenVerifyView,
+    TokenBlacklistView,
 )
 
-from social_network.views import CreateUserView, ManageUserView, LogoutView
+from social_network.views import CreateUserView, ManageUserView
 
 app_name = "social_network"
 
