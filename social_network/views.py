@@ -1,4 +1,7 @@
 from rest_framework import generics, status, mixins
+from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
@@ -39,3 +42,20 @@ class UserViewSet(
             )
 
         return queryset
+
+    @action(
+        methods=["POST"],
+        detail=True,
+        url_path="follow-unfollow-user",
+        permission_classes=[IsAuthenticated],
+    )
+    def follow_unfollow_user(self, request, pk=None):
+        """Endpoint for following specific user"""
+        following = self.get_object()
+        follower = self.request.user
+        if following not in follower.followed_users.all():
+            follower.followed_users.add(following)
+        else:
+            follower.followed_users.remove(following)
+
+        return Response(status=status.HTTP_200_OK)
