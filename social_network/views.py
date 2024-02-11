@@ -59,3 +59,33 @@ class UserViewSet(
             follower.followed_users.remove(following)
 
         return Response(status=status.HTTP_200_OK)
+
+    @action(
+        methods=["GET"],
+        detail=True,
+        url_path="followings",
+        permission_classes=[IsAuthenticated],
+    )
+    def followings(self, request, pk):
+        """Endpoint to retrieve followings of the user"""
+        user = User.objects.get(id=pk)
+        followings = user.followed_users.all()
+
+        serializer = UserSerializer(followings, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(
+        methods=["GET"],
+        detail=True,
+        url_path="followers",
+        permission_classes=[IsAuthenticated],
+    )
+    def followers(self, request, pk):
+        """Endpoint to retrieve followers of the user"""
+        user = User.objects.get(id=pk)
+        followers = user.followed_by.all()
+
+        serializer = UserSerializer(followers, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
