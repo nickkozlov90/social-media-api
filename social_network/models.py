@@ -68,6 +68,10 @@ class User(AbstractUser):
 
     objects = UserManager()
 
+    @property
+    def owner(self):
+        return self
+
     class Meta:
         ordering = ["email"]
 
@@ -107,7 +111,7 @@ class Post(models.Model):
 
 
 class Commentary(models.Model):
-    user = models.ForeignKey(
+    owner = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         related_name="commentaries"

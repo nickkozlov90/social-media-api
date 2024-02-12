@@ -10,5 +10,5 @@ class IsOwnerOrIfAuthenticatedReadOnly(BasePermission):
                 and request.user
                 and request.user.is_authenticated
             )
-            or obj == request.user
+            or obj.owner == request.user
         )

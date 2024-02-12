@@ -5,9 +5,9 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
-from social_network.models import User
+from social_network.models import User, Post
 from social_network.permissions import IsOwnerOrIfAuthenticatedReadOnly
-from social_network.serializers import UserSerializer
+from social_network.serializers import UserSerializer, PostSerializer
 
 
 class CreateUserView(generics.CreateAPIView):
@@ -89,3 +89,42 @@ class UserViewSet(
         serializer = UserSerializer(followers, many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(
+        methods=["GET"],
+        detail=True,
+        url_path="posts",
+        permission_classes=[IsAuthenticated],
+    )
+    def posts(self, request, pk):
+        """Endpoint to retrieve post of the user"""
+        user = User.objects.get(id=pk)
+        posts = user.posts.all()
+
+        serializer = PostSerializer(posts, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class PostViewSet(
+    mixins.CreateModelMixin,
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.DestroyModelMixin,
+    GenericViewSet,
+):
+    serializer_class = PostSerializer
+    authentication_classes = (JWTAuthentication,)
+    permission_classes = (IsOwnerOrIfAuthenticatedReadOnly,)
+    queryset = Post.objects.all()
+
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
+
+    def get_queryset(self):
+        user = self.request.user
+        followed_posts = Post.objects.filter(
+            owner__in=user.followed_users.all()
+        )
+
+        return followed_posts

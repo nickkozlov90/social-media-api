@@ -7,12 +7,13 @@ from rest_framework_simplejwt.views import (
     TokenBlacklistView,
 )
 
-from social_network.views import CreateUserView, UserViewSet
+from social_network.views import CreateUserView, UserViewSet, PostViewSet
 
 app_name = "social_network"
 
 router = routers.DefaultRouter()
 router.register("users", UserViewSet)
+router.register("posts", PostViewSet)
 
 urlpatterns = [
     path("", include(router.urls)),

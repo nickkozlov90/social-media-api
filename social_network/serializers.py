@@ -1,6 +1,8 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
+from social_network.models import Post
+
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -25,3 +27,12 @@ class UserSerializer(serializers.ModelSerializer):
             user.save()
 
         return user
+
+
+class PostSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Post
+        fields = (
+            "id", "owner", "title", "content", "created_time", "likes", "tags",
+        )
+        read_only_fields = ("owner",)
