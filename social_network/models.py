@@ -100,7 +100,6 @@ class Post(models.Model):
         User, related_name="post_like", blank=True
     )
     tags = TaggableManager()
-    # tags = models.ManyToManyField(Tag, related_name="tags", blank=True)
 
     class Meta:
         ordering = ["-created_time"]

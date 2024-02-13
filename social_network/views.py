@@ -107,6 +107,21 @@ class UserViewSet(
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @action(
+        methods=["GET"],
+        detail=True,
+        url_path="liked-posts",
+        permission_classes=[IsAuthenticated],
+    )
+    def liked_posts(self, request, pk):
+        """Endpoint to retrieve post that current user liked"""
+        user = self.request.user
+        liked_posts = user.post_like.all()
+
+        serializer = PostSerializer(liked_posts, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 class PostViewSet(
     mixins.CreateModelMixin,
@@ -137,3 +152,22 @@ class PostViewSet(
         )
 
         return followed_posts
+
+    @action(
+        methods=["POST"],
+        detail=False,
+        url_path="like-unlike",
+        permission_classes=[IsAuthenticated],
+    )
+    def like(self, request, pk=None):
+        """Endpoint for liking-unliking specific post"""
+        post = self.get_object()
+        serializer = PostSerializer(post)
+
+        if post.likes.filter(id=request.user.id).exists():
+            post.likes.remove(request.user)
+        else:
+            post.likes.add(request.user)
+
+        post.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
