@@ -6,6 +6,7 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils.text import slugify
 from django.utils.translation import gettext as _
+from taggit.managers import TaggableManager
 
 
 def user_image_file_path(instance, filename):
@@ -98,7 +99,8 @@ class Post(models.Model):
     likes = models.ManyToManyField(
         User, related_name="post_like", blank=True
     )
-    tags = models.ManyToManyField(Tag, related_name="tags", blank=True)
+    tags = TaggableManager()
+    # tags = models.ManyToManyField(Tag, related_name="tags", blank=True)
 
     class Meta:
         ordering = ["-created_time"]

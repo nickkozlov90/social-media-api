@@ -1,9 +1,11 @@
 from rest_framework import generics, status, mixins
 from rest_framework.decorators import action
+from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 from rest_framework_simplejwt.authentication import JWTAuthentication
+from taggit.models import Tag
 
 from social_network.models import User, Post
 from social_network.permissions import IsOwnerOrIfAuthenticatedReadOnly
@@ -122,6 +124,13 @@ class PostViewSet(
         serializer.save(owner=self.request.user)
 
     def get_queryset(self):
+        tag_slugs = self.request.query_params.getlist("tag_slug")
+
+        if tag_slugs:
+            tags = Tag.objects.filter(slug__in=tag_slugs)
+            queryset = self.queryset.filter(tags__in=tags)
+            return queryset
+
         user = self.request.user
         followed_posts = Post.objects.filter(
             owner__in=user.followed_users.all()
