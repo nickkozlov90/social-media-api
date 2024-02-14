@@ -9,7 +9,7 @@ from taggit.models import Tag
 
 from social_network.models import User, Post
 from social_network.permissions import IsOwnerOrIfAuthenticatedReadOnly
-from social_network.serializers import UserSerializer, PostSerializer
+from social_network.serializers import UserSerializer, PostSerializer, PostImageSerializer
 
 
 class CreateUserView(generics.CreateAPIView):
@@ -155,6 +155,12 @@ class PostViewSet(
 
         return queryset
 
+    def get_serializer_class(self):
+        if self.action == "upload_image":
+            return PostImageSerializer
+
+        return PostSerializer
+
     @action(
         methods=["POST"],
         detail=False,
@@ -172,4 +178,19 @@ class PostViewSet(
             post.likes.add(request.user)
 
         post.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+    @action(
+        methods=["POST"],
+        detail=True,
+        url_path="upload-image",
+    )
+    def upload_image(self, request, pk=None):
+        """Endpoint for uploading image to specific post"""
+        post = self.get_object()
+        serializer = self.get_serializer(data=request.data)
+
+        serializer.is_valid(raise_exception=True)
+        serializer.save(post_id=post.id)
         return Response(serializer.data, status=status.HTTP_200_OK)

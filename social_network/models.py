@@ -15,6 +15,12 @@ def user_image_file_path(instance, filename):
 
     return os.path.join("uploads/users/", filename)
 
+def post_image_file_path(instance, filename):
+    _, extension = os.path.splitext(filename)
+    filename = f"{slugify(instance.post.title)}-{uuid.uuid4()}{extension}"
+
+    return os.path.join("uploads/posts/", filename)
+
 
 class UserManager(BaseUserManager):
     """Define a model manager for User model with no username field."""
@@ -121,3 +127,8 @@ class Commentary(models.Model):
 
     def __str__(self):
         return f"{self.user} {self.created_time.strftime('%Y-%m-%d %H:%M')}"
+
+
+class PostImage(models.Model):
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="images")
+    image = models.ImageField(upload_to=post_image_file_path)
