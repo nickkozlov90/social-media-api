@@ -7,7 +7,7 @@ from rest_framework.viewsets import GenericViewSet
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from taggit.models import Tag
 
-from social_network.models import User, Post
+from social_network.models import User, Post, Commentary
 from social_network.permissions import IsOwnerOrIfAuthenticatedReadOnly
 from social_network.serializers import UserSerializer, PostSerializer, PostImageSerializer, CommentarySerializer
 
@@ -209,3 +209,17 @@ class PostViewSet(
         serializer.is_valid(raise_exception=True)
         serializer.save(post_id=post.id, owner=owner)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    @action(
+        methods=["GET"],
+        detail=True,
+        url_path="commentaries",
+    )
+    def commentaries_list(self, request, pk=None):
+        """Endpoint to view commentaries to the specific post"""
+        post = self.get_object()
+        commentaries = Commentary.objects.filter(post_id=post.id)
+
+        serializer = CommentarySerializer(commentaries, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
