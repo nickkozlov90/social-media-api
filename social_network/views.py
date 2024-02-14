@@ -9,7 +9,7 @@ from taggit.models import Tag
 
 from social_network.models import User, Post
 from social_network.permissions import IsOwnerOrIfAuthenticatedReadOnly
-from social_network.serializers import UserSerializer, PostSerializer, PostImageSerializer
+from social_network.serializers import UserSerializer, PostSerializer, PostImageSerializer, CommentarySerializer
 
 
 class CreateUserView(generics.CreateAPIView):
@@ -180,7 +180,6 @@ class PostViewSet(
         post.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-
     @action(
         methods=["POST"],
         detail=True,
@@ -194,3 +193,19 @@ class PostViewSet(
         serializer.is_valid(raise_exception=True)
         serializer.save(post_id=post.id)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(
+        methods=["POST"],
+        detail=True,
+        url_path="add-commentary",
+    )
+    def add_commentary(self, request, pk=None):
+        """Endpoint for adding commentaries to specific post"""
+        post = self.get_object()
+        owner = self.request.user
+
+        serializer = CommentarySerializer(data=self.request.data)
+
+        serializer.is_valid(raise_exception=True)
+        serializer.save(post_id=post.id, owner=owner)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)

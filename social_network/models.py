@@ -15,6 +15,7 @@ def user_image_file_path(instance, filename):
 
     return os.path.join("uploads/users/", filename)
 
+
 def post_image_file_path(instance, filename):
     _, extension = os.path.splitext(filename)
     filename = f"{slugify(instance.post.title)}-{uuid.uuid4()}{extension}"

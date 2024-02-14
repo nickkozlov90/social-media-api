@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from taggit.serializers import TaggitSerializer, TagListSerializerField
 
-from social_network.models import Post, PostImage
+from social_network.models import Post, PostImage, Commentary
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -47,3 +47,12 @@ class PostSerializer(TaggitSerializer, serializers.ModelSerializer):
             "images"
         )
         read_only_fields = ("owner",)
+
+
+class CommentarySerializer(serializers.ModelSerializer):
+    owner = serializers.StringRelatedField()
+
+    class Meta:
+        model = Commentary
+        fields = ("id", "owner", "created_time", "content")
+        read_only_fields = ("created_time",)
