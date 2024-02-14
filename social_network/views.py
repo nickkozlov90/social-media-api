@@ -139,6 +139,13 @@ class PostViewSet(
         serializer.save(owner=self.request.user)
 
     def get_queryset(self):
+        user = self.request.user
+        followed_posts = Post.objects.filter(
+            owner__in=user.followed_users.all()
+        )
+        user_posts = Post.objects.filter(owner=user)
+        queryset = followed_posts | user_posts
+
         tag_slugs = self.request.query_params.getlist("tag_slug")
 
         if tag_slugs:
@@ -146,12 +153,7 @@ class PostViewSet(
             queryset = self.queryset.filter(tags__in=tags)
             return queryset
 
-        user = self.request.user
-        followed_posts = Post.objects.filter(
-            owner__in=user.followed_users.all()
-        )
-
-        return followed_posts
+        return queryset
 
     @action(
         methods=["POST"],

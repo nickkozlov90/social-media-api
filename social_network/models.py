@@ -77,16 +77,6 @@ class User(AbstractUser):
         ordering = ["email"]
 
 
-class Tag(models.Model):
-    title = models.CharField(max_length=75)
-    slug = models.SlugField(null=False, unique=True, default=uuid.uuid1)
-
-    def save(self, *args, **kwargs):
-        if not self.slug:
-            self.slug = slugify(self.title)
-        return super().save(*args, **kwargs)
-
-
 class Post(models.Model):
     owner = models.ForeignKey(
         User,
