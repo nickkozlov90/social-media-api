@@ -5,7 +5,6 @@ from django.utils.translation import gettext as _
 from social_network.models import User, Post, Commentary
 
 
-admin.site.register(Post)
 admin.site.register(Commentary)
 
 
@@ -43,3 +42,7 @@ class UserAdmin(DjangoUserAdmin):
     search_fields = ("email", "first_name", "last_name")
     ordering = ("email",)
 
+
+@admin.register(Post)
+class PostAdmin(admin.ModelAdmin):
+    list_display = ("title", "owner", "created_time", "published",)
