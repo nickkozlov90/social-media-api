@@ -1,0 +1,6 @@
+.flake8
+venv/
+**db.sqlite3
+.git
+.gitignore
+.env_sample
