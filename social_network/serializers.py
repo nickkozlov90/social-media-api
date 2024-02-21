@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
 from rest_framework import serializers
 from taggit.serializers import TaggitSerializer, TagListSerializerField
 
@@ -38,15 +39,20 @@ class PostImageSerializer(serializers.ModelSerializer):
 
 class PostSerializer(TaggitSerializer, serializers.ModelSerializer):
     tags = TagListSerializerField()
-    images = PostImageSerializer(many=True)
+    images = PostImageSerializer(many=True, read_only=True)
 
     class Meta:
         model = Post
         fields = (
-            "id", "owner", "title", "content", "created_time", "likes", "tags",
-            "images"
+            "id", "owner", "title", "content", "created_time", "tags",
+            "images", "published", "publish_time",
         )
-        read_only_fields = ("owner",)
+        read_only_fields = ("id", "owner", "likes",)
+
+    def validate(self, data):
+        if not data.get("published") and data.get("publish_time") is None:
+            raise ValidationError
+        return data
 
 
 class CommentarySerializer(serializers.ModelSerializer):

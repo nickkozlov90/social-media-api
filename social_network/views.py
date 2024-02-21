@@ -101,7 +101,7 @@ class UserViewSet(
     def posts(self, request, pk):
         """Endpoint to retrieve post of the user"""
         user = User.objects.get(id=pk)
-        posts = user.posts.all()
+        posts = user.posts.filter(published=True)
 
         serializer = PostSerializer(posts, many=True)
 
@@ -141,7 +141,7 @@ class PostViewSet(
     def get_queryset(self):
         user = self.request.user
         followed_posts = Post.objects.filter(
-            owner__in=user.followed_users.all()
+            owner__in=user.followed_users.filter(published=True)
         )
         user_posts = Post.objects.filter(owner=user)
         queryset = followed_posts | user_posts

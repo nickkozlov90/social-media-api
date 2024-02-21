@@ -96,7 +96,9 @@ class Post(models.Model):
     likes = models.ManyToManyField(
         User, related_name="post_like", blank=True
     )
-    tags = TaggableManager()
+    tags = TaggableManager(blank=True)
+    published = models.BooleanField(default=True)
+    publish_time = models.DateTimeField(null=True)
 
     class Meta:
         ordering = ["-created_time"]
