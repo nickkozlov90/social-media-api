@@ -51,7 +51,7 @@ class PostSerializer(TaggitSerializer, serializers.ModelSerializer):
 
     def validate(self, data):
         if not data.get("published") and data.get("publish_time") is None:
-            raise ValidationError
+            raise ValidationError("Enter the publication date")
         return data
 
 

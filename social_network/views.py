@@ -3,7 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.viewsets import GenericViewSet
+from rest_framework.viewsets import GenericViewSet, ModelViewSet
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from taggit.models import Tag
 
@@ -123,13 +123,7 @@ class UserViewSet(
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class PostViewSet(
-    mixins.CreateModelMixin,
-    mixins.ListModelMixin,
-    mixins.RetrieveModelMixin,
-    mixins.DestroyModelMixin,
-    GenericViewSet,
-):
+class PostViewSet(ModelViewSet):
     serializer_class = PostSerializer
     authentication_classes = (JWTAuthentication,)
     permission_classes = (IsOwnerOrIfAuthenticatedReadOnly,)
@@ -141,8 +135,8 @@ class PostViewSet(
     def get_queryset(self):
         user = self.request.user
         followed_posts = Post.objects.filter(
-            owner__in=user.followed_users.filter(published=True)
-        )
+            owner__in=user.followed_users.all()
+        ).filter(published=True)
         user_posts = Post.objects.filter(owner=user)
         queryset = followed_posts | user_posts
 
