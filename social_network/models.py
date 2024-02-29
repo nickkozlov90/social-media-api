@@ -129,7 +129,7 @@ class Commentary(models.Model):
         verbose_name_plural = "commentaries"
 
     def __str__(self):
-        return f"{self.user} {self.created_time.strftime('%Y-%m-%d %H:%M')}"
+        return f"{self.owner.email} {self.created_time.strftime('%Y-%m-%d %H:%M')}"
 
 
 class PostImage(models.Model):

@@ -31,6 +31,15 @@ class UserSerializer(serializers.ModelSerializer):
         return user
 
 
+class CommentarySerializer(serializers.ModelSerializer):
+    owner = serializers.StringRelatedField()
+
+    class Meta:
+        model = Commentary
+        fields = ("id", "owner", "created_time", "content")
+        read_only_fields = ("created_time",)
+
+
 class PostImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = PostImage
@@ -40,25 +49,17 @@ class PostImageSerializer(serializers.ModelSerializer):
 class PostSerializer(TaggitSerializer, serializers.ModelSerializer):
     tags = TagListSerializerField()
     images = PostImageSerializer(many=True, read_only=True)
+    commentaries = CommentarySerializer(many=True)
 
     class Meta:
         model = Post
         fields = (
             "id", "owner", "title", "content", "created_time", "tags",
-            "images", "published", "publish_time",
+            "images", "published", "publish_time", "commentaries",
         )
-        read_only_fields = ("id", "owner", "likes",)
+        read_only_fields = ("id", "owner", "likes", "tags",)
 
     def validate(self, data):
         if not data.get("published") and data.get("publish_time") is None:
             raise ValidationError("Enter the publication date")
         return data
-
-
-class CommentarySerializer(serializers.ModelSerializer):
-    owner = serializers.StringRelatedField()
-
-    class Meta:
-        model = Commentary
-        fields = ("id", "owner", "created_time", "content")
-        read_only_fields = ("created_time",)

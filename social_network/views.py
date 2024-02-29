@@ -183,32 +183,26 @@ class PostViewSet(ModelViewSet):
         serializer.save(post_id=post.id)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    @action(
-        methods=["POST"],
-        detail=True,
-        url_path="add-commentary",
-    )
-    def add_commentary(self, request, pk=None):
-        """Endpoint for adding commentaries to specific post"""
-        post = self.get_object()
-        owner = self.request.user
 
-        serializer = CommentarySerializer(data=self.request.data)
+class CommentaryViewSet(ModelViewSet):
+    serializer_class = CommentarySerializer
+    authentication_classes = (JWTAuthentication,)
+    permission_classes = (IsOwnerOrIfAuthenticatedReadOnly,)
+    queryset = Commentary.objects.all()
 
-        serializer.is_valid(raise_exception=True)
-        serializer.save(post_id=post.id, owner=owner)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    def get_queryset(self):
+        queryset = Commentary.objects.all()
+        if self.action in ["retrieve", "list"]:
+            post_id = self.request.query_params.get("post_id")
+            queryset = queryset.filter(post__id=post_id)
 
-    @action(
-        methods=["GET"],
-        detail=True,
-        url_path="commentaries",
-    )
-    def commentaries_list(self, request, pk=None):
-        """Endpoint to view commentaries to the specific post"""
-        post = self.get_object()
-        commentaries = Commentary.objects.filter(post_id=post.id)
+            return queryset
 
-        serializer = CommentarySerializer(commentaries, many=True)
+        return queryset
 
-        return Response(serializer.data, status=status.HTTP_200_OK)
+    def perform_create(self, serializer):
+        post_id = self.request.query_params.get("post_id")
+        serializer.save(
+            owner=self.request.user,
+            post=Post.objects.get(id=post_id)
+        )
