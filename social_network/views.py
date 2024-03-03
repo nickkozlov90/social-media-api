@@ -16,7 +16,13 @@ class CreateUserView(generics.CreateAPIView):
     serializer_class = UserSerializer
 
 
-class UserViewSet(ModelViewSet):
+class UserViewSet(
+    mixins.RetrieveModelMixin,
+    mixins.ListModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.DestroyModelMixin,
+    GenericViewSet,
+):
     serializer_class = UserSerializer
     authentication_classes = (JWTAuthentication,)
     permission_classes = (IsOwnerOrIfAuthenticatedReadOnly,)
