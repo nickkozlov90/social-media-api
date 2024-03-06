@@ -9,13 +9,6 @@ from social_network.serializers import UserSerializer, PostSerializer
 
 
 class UnauthenticatedUserApiTests(TestCase):
-    # def setUp(self):
-    #     self.client = APIClient()
-    #     self.user = get_user_model().objects.create_user(
-    #         "test1@test.com",
-    #         "testpass",
-    #     )
-
     def test_auth_required(self):
         self.client = APIClient()
         self.user = get_user_model().objects.create_user(

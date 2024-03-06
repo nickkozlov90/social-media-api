@@ -42,6 +42,12 @@ class AuthenticatedPostApiTests(TestCase):
         )
         self.client.force_authenticate(self.user)
 
+        self.post = Post.objects.create(
+            owner=self.user,
+            title="Test post",
+            content="Test content"
+        )
+
     def test_create_post(self):
         payload = {
             "owner": self.user.id,
@@ -60,13 +66,7 @@ class AuthenticatedPostApiTests(TestCase):
         self.assertEqual(payload["owner"], post.owner.id)
 
     def test_get_post(self):
-        post = Post.objects.create(
-            owner=self.user,
-            title="Test post",
-            content="Test content"
-        )
-
-        user_url = reverse("social_network:post-detail", args=[post.id])
+        user_url = reverse("social_network:post-detail", args=[self.post.id])
         res = self.client.get(user_url)
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
@@ -85,11 +85,6 @@ class AuthenticatedPostApiTests(TestCase):
         )
         self.user.followed_users.add(followed_user)
 
-        own_post = Post.objects.create(
-            owner=self.user,
-            title="Own post",
-            content="Test content"
-        )
         followed_user_post = Post.objects.create(
             owner=followed_user,
             title="Followed user's post",
@@ -106,7 +101,7 @@ class AuthenticatedPostApiTests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
-        target_posts = [followed_user_post, own_post]
+        target_posts = [followed_user_post, self.post]
         target_posts_serializer = PostSerializer(target_posts, many=True)
         expected_data = target_posts_serializer.data
 
@@ -117,11 +112,6 @@ class AuthenticatedPostApiTests(TestCase):
         self.assertNotIn(non_followed_user_post.id, post_ids_in_res)
 
     def test_filter_by_tag(self):
-        post = Post.objects.create(
-            title="Test post",
-            content="Test content",
-            owner=self.user,
-        )
         target_post = Post.objects.create(
             title="Target post",
             content="Test content",
@@ -136,7 +126,7 @@ class AuthenticatedPostApiTests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
         post_ids_in_res = [post['id'] for post in res.data]
-        self.assertNotIn(post.id, post_ids_in_res)
+        self.assertNotIn(self.post.id, post_ids_in_res)
 
         expected_tags = [tag.slug for tag in target_post.tags.all()]
         self.assertEqual(res.data[0]["tags"], expected_tags)
@@ -177,45 +167,29 @@ class AuthenticatedPostApiTests(TestCase):
 
     def test_upload_image(self):
         """Test uploading an image to post"""
-        post = Post.objects.create(
-            title="Test post",
-            content="Test content",
-            owner=self.user,
-        )
-        url = reverse("social_network:post-detail", args=[post.id]) + f"upload-image/"
+        url = reverse("social_network:post-detail", args=[self.post.id]) + f"upload-image/"
 
         with tempfile.NamedTemporaryFile(suffix=".jpg") as ntf:
             img = Image.new("RGB", (10, 10))
             img.save(ntf, format="JPEG")
             ntf.seek(0)
             res = self.client.post(url, {"image": ntf}, format="multipart")
-        post.refresh_from_db()
+        self.post.refresh_from_db()
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertIn("image", res.data)
-        for image in post.images.all():
+        for image in self.post.images.all():
             self.assertTrue(os.path.exists(image.image.path))
 
     def test_upload_image_bad_request(self):
         """Test uploading an invalid image"""
-        post = Post.objects.create(
-            title="Test post",
-            content="Test content",
-            owner=self.user,
-        )
-        url = reverse("social_network:post-detail", args=[post.id]) + f"upload-image/"
+        url = reverse("social_network:post-detail", args=[self.post.id]) + f"upload-image/"
         res = self.client.post(url, {"image": "not image"}, format="multipart")
 
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_image_url_is_shown_on_post_detail(self):
-        post = Post.objects.create(
-            title="Test post",
-            content="Test content",
-            owner=self.user,
-        )
-
-        url = reverse("social_network:post-detail", args=[post.id]) + f"upload-image/"
+        url = reverse("social_network:post-detail", args=[self.post.id]) + f"upload-image/"
         with tempfile.NamedTemporaryFile(suffix=".jpg") as ntf:
             img = Image.new("RGB", (10, 10))
             img.save(ntf, format="JPEG")
@@ -223,3 +197,31 @@ class AuthenticatedPostApiTests(TestCase):
             res = self.client.post(url, {"image": ntf}, format="multipart")
             self.assertEqual(res.status_code, status.HTTP_200_OK)
             self.assertIn("image", res.data.keys())
+
+    def test_update_post(self):
+        payload = {
+            "content": "New content text",
+            "published": True
+        }
+
+        res = self.client.patch(
+            reverse(
+                "social_network:post-detail", args=[self.post.id]
+            ),
+            data=payload,
+        )
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+        updated_post = Post.objects.get(id=self.post.id)
+
+        self.assertEqual(updated_post.content, payload["content"])
+
+    def test_delete_user(self):
+        res = self.client.delete(
+            reverse(
+                "social_network:user-detail", args=[self.post.id]
+            ),
+        )
+
+        self.assertEqual(res.status_code, status.HTTP_204_NO_CONTENT)
