@@ -13,12 +13,16 @@ class UserSerializer(serializers.ModelSerializer):
             "id", "first_name", "last_name", "email", "password", "is_staff",
             "followed_users", "profile_picture", "bio",
         )
-        read_only_fields = ("is_staff", "followed_users", )
+        read_only_fields = ("is_staff",)
         extra_kwargs = {"password": {"write_only": True, "min_length": 5}}
 
     def create(self, validated_data):
         """Create a new user with encrypted password and return it"""
-        return get_user_model().objects.create_user(**validated_data)
+        followed_users = validated_data.pop("followed_users", [])
+        user = get_user_model().objects.create_user(**validated_data)
+        for followed_user in followed_users:
+            user.followed_users.add(followed_user)
+        return user
 
     def update(self, instance, validated_data):
         """Update a user, set the password correctly and return it"""
@@ -47,19 +51,31 @@ class PostImageSerializer(serializers.ModelSerializer):
 
 
 class PostSerializer(TaggitSerializer, serializers.ModelSerializer):
-    tags = TagListSerializerField()
+    tags = TagListSerializerField(read_only=True)
     images = PostImageSerializer(many=True, read_only=True)
-    commentaries = CommentarySerializer(many=True)
+    commentaries = CommentarySerializer(many=True, read_only=True)
 
     class Meta:
         model = Post
         fields = (
             "id", "owner", "title", "content", "created_time", "tags",
-            "images", "published", "publish_time", "commentaries",
+            "images", "published", "publish_time", "commentaries", "likes"
         )
-        read_only_fields = ("id", "owner", "likes", "tags",)
+        read_only_fields = ("id", "owner", "likes",)
 
     def validate(self, data):
         if not data.get("published") and data.get("publish_time") is None:
             raise ValidationError("Enter the publication date")
         return data
+
+    def create(self, validated_data):
+        tags_data = validated_data.pop("tags", [])
+        commentaries_data = validated_data.pop("commentaries", [])
+
+        post = Post.objects.create(**validated_data)
+
+        post.tags.set(tags=tags_data)
+
+        for commentary_data in commentaries_data:
+            Commentary.objects.create(post=post, **commentary_data)
+        return post

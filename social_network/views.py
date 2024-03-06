@@ -127,7 +127,7 @@ class UserViewSet(
 class PostViewSet(ModelViewSet):
     serializer_class = PostSerializer
     authentication_classes = (JWTAuthentication,)
-    permission_classes = (IsOwnerOrIfAuthenticatedReadOnly,)
+    permission_classes = (IsAuthenticated, IsOwnerOrIfAuthenticatedReadOnly,)
     queryset = Post.objects.all()
 
     def perform_create(self, serializer):
@@ -158,7 +158,7 @@ class PostViewSet(ModelViewSet):
 
     @action(
         methods=["POST"],
-        detail=False,
+        detail=True,
         url_path="like-unlike",
         permission_classes=[IsAuthenticated],
     )

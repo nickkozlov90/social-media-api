@@ -98,7 +98,7 @@ class Post(models.Model):
     )
     tags = TaggableManager(blank=True)
     published = models.BooleanField(default=True)
-    publish_time = models.DateTimeField(null=True)
+    publish_time = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         ordering = ["-created_time"]
