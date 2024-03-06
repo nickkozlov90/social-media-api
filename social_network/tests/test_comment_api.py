@@ -23,9 +23,7 @@ class UnauthenticatedCommentaryApiTests(TestCase):
         )
 
         commentary = Commentary.objects.create(
-            owner=self.user,
-            post=post,
-            content="Some comment text"
+            owner=self.user, post=post, content="Some comment text"
         )
 
         url = reverse("social_network:commentary-detail", args=[commentary.id])
@@ -45,16 +43,16 @@ class AuthenticatedCommentaryApiTests(TestCase):
         self.client.force_authenticate(self.user)
 
         self.post = Post.objects.create(
-            owner=self.user,
-            title="Test post",
-            content="Test post content"
+            owner=self.user, title="Test post", content="Test post content"
         )
 
     def test_create_commentary(self):
         payload = {
             "content": "Some commentary text",
         }
-        create_url = reverse("social_network:commentary-list") + f"?post_id={self.post.id}"
+        create_url = (
+            reverse("social_network:commentary-list") + f"?post_id={self.post.id}"
+        )
         res = self.client.post(create_url, payload)
 
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
@@ -105,9 +103,7 @@ class AuthenticatedCommentaryApiTests(TestCase):
         }
 
         res = self.client.patch(
-            reverse(
-                "social_network:commentary-detail", args=[commentary.id]
-            ),
+            reverse("social_network:commentary-detail", args=[commentary.id]),
             data=payload,
         )
 
@@ -124,9 +120,7 @@ class AuthenticatedCommentaryApiTests(TestCase):
             owner=self.user,
         )
         res = self.client.delete(
-            reverse(
-                "social_network:commentary-detail", args=[commentary.id]
-            ),
+            reverse("social_network:commentary-detail", args=[commentary.id]),
         )
 
         self.assertEqual(res.status_code, status.HTTP_204_NO_CONTENT)

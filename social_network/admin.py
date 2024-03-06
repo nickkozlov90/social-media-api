@@ -38,11 +38,21 @@ class UserAdmin(DjangoUserAdmin):
             },
         ),
     )
-    list_display = ("email", "first_name", "last_name", "is_staff",)
+    list_display = (
+        "email",
+        "first_name",
+        "last_name",
+        "is_staff",
+    )
     search_fields = ("email", "first_name", "last_name")
     ordering = ("email",)
 
 
 @admin.register(Post)
 class PostAdmin(admin.ModelAdmin):
-    list_display = ("title", "owner", "created_time", "published",)
+    list_display = (
+        "title",
+        "owner",
+        "created_time",
+        "published",
+    )

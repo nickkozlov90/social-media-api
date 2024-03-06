@@ -1,6 +1,5 @@
 from rest_framework import generics, status, mixins
 from rest_framework.decorators import action
-from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, ModelViewSet
@@ -9,7 +8,12 @@ from taggit.models import Tag
 
 from social_network.models import User, Post, Commentary
 from social_network.permissions import IsOwnerOrIfAuthenticatedReadOnly
-from social_network.serializers import UserSerializer, PostSerializer, PostImageSerializer, CommentarySerializer
+from social_network.serializers import (
+    UserSerializer,
+    PostSerializer,
+    PostImageSerializer,
+    CommentarySerializer,
+)
 
 
 class CreateUserView(generics.CreateAPIView):
@@ -35,14 +39,10 @@ class UserViewSet(
         queryset = self.queryset
 
         if first_name:
-            queryset = queryset.filter(
-                first_name__icontains=first_name
-            )
+            queryset = queryset.filter(first_name__icontains=first_name)
 
         if last_name:
-            queryset = queryset.filter(
-                last_name__icontains=last_name
-            )
+            queryset = queryset.filter(last_name__icontains=last_name)
 
         return queryset
 
@@ -127,7 +127,10 @@ class UserViewSet(
 class PostViewSet(ModelViewSet):
     serializer_class = PostSerializer
     authentication_classes = (JWTAuthentication,)
-    permission_classes = (IsAuthenticated, IsOwnerOrIfAuthenticatedReadOnly,)
+    permission_classes = (
+        IsAuthenticated,
+        IsOwnerOrIfAuthenticatedReadOnly,
+    )
     queryset = Post.objects.all()
 
     def perform_create(self, serializer):
@@ -209,6 +212,5 @@ class CommentaryViewSet(ModelViewSet):
     def perform_create(self, serializer):
         post_id = self.request.query_params.get("post_id")
         serializer.save(
-            owner=self.request.user,
-            post=Post.objects.get(id=post_id)
+            owner=self.request.user, post=Post.objects.get(id=post_id)
         )

@@ -10,8 +10,15 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = get_user_model()
         fields = (
-            "id", "first_name", "last_name", "email", "password", "is_staff",
-            "followed_users", "profile_picture", "bio",
+            "id",
+            "first_name",
+            "last_name",
+            "email",
+            "password",
+            "is_staff",
+            "followed_users",
+            "profile_picture",
+            "bio",
         )
         read_only_fields = ("is_staff",)
         extra_kwargs = {"password": {"write_only": True, "min_length": 5}}
@@ -58,10 +65,23 @@ class PostSerializer(TaggitSerializer, serializers.ModelSerializer):
     class Meta:
         model = Post
         fields = (
-            "id", "owner", "title", "content", "created_time", "tags",
-            "images", "published", "publish_time", "commentaries", "likes"
+            "id",
+            "owner",
+            "title",
+            "content",
+            "created_time",
+            "tags",
+            "images",
+            "published",
+            "publish_time",
+            "commentaries",
+            "likes",
         )
-        read_only_fields = ("id", "owner", "likes",)
+        read_only_fields = (
+            "id",
+            "owner",
+            "likes",
+        )
 
     def validate(self, data):
         if not data.get("published") and data.get("publish_time") is None:

@@ -61,10 +61,7 @@ class User(AbstractUser):
     username = None
     email = models.EmailField(_("email address"), unique=True)
     followed_users = models.ManyToManyField(
-        "self",
-        blank=True,
-        symmetrical=False,
-        related_name="followed_by"
+        "self", blank=True, symmetrical=False, related_name="followed_by"
     )
     profile_picture = models.ImageField(
         null=True, blank=True, upload_to=user_image_file_path
@@ -86,16 +83,12 @@ class User(AbstractUser):
 
 class Post(models.Model):
     owner = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name="posts"
+        User, on_delete=models.CASCADE, related_name="posts"
     )
     title = models.CharField(max_length=255)
     content = models.TextField()
     created_time = models.DateTimeField(auto_now_add=True)
-    likes = models.ManyToManyField(
-        User, related_name="post_like", blank=True
-    )
+    likes = models.ManyToManyField(User, related_name="post_like", blank=True)
     tags = TaggableManager(blank=True)
     published = models.BooleanField(default=True)
     publish_time = models.DateTimeField(null=True, blank=True)
@@ -112,14 +105,10 @@ class Post(models.Model):
 
 class Commentary(models.Model):
     owner = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name="commentaries"
+        User, on_delete=models.CASCADE, related_name="commentaries"
     )
     post = models.ForeignKey(
-        Post,
-        on_delete=models.CASCADE,
-        related_name="commentaries"
+        Post, on_delete=models.CASCADE, related_name="commentaries"
     )
     created_time = models.DateTimeField(auto_now_add=True)
     content = models.TextField()
@@ -129,9 +118,12 @@ class Commentary(models.Model):
         verbose_name_plural = "commentaries"
 
     def __str__(self):
-        return f"{self.owner.email} {self.created_time.strftime('%Y-%m-%d %H:%M')}"
+        return f"{self.owner.email} " \
+               f"{self.created_time.strftime('%Y-%m-%d %H:%M')}"
 
 
 class PostImage(models.Model):
-    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="images")
+    post = models.ForeignKey(
+        Post, on_delete=models.CASCADE, related_name="images"
+    )
     image = models.ImageField(upload_to=post_image_file_path)

@@ -54,12 +54,16 @@ class AuthenticatedUserApiTests(TestCase):
 
     def test_search_user_by_first_name(self):
         target_user = get_user_model().objects.get(first_name="Bart")
-        res = self.client.get(reverse("social_network:user-list"), {"first_name": target_user.first_name})
+        res = self.client.get(
+            reverse("social_network:user-list"), {"first_name": target_user.first_name}
+        )
         self.assertIn(res.data[0]["first_name"], target_user.first_name)
 
     def test_search_user_by_last_name(self):
         target_user = get_user_model().objects.get(last_name="Simpson")
-        res = self.client.get(reverse("social_network:user-list"), {"last_name": target_user.last_name})
+        res = self.client.get(
+            reverse("social_network:user-list"), {"last_name": target_user.last_name}
+        )
         self.assertIn(res.data[0]["last_name"], target_user.last_name)
 
     def test_add_user_to_following_if_not_followed(self):
@@ -70,7 +74,10 @@ class AuthenticatedUserApiTests(TestCase):
             last_name="Griffin",
         )
 
-        res = self.client.post(reverse("social_network:user-detail", args=[followed_user.id]) + f"follow-unfollow-user/")
+        res = self.client.post(
+            reverse("social_network:user-detail", args=[followed_user.id])
+            + f"follow-unfollow-user/"
+        )
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertTrue(self.user.followed_users.filter(id=followed_user.id).exists())
@@ -85,9 +92,8 @@ class AuthenticatedUserApiTests(TestCase):
         self.user.followed_users.add(followed_user)
 
         res = self.client.post(
-            reverse(
-                "social_network:user-detail", args=[followed_user.id]
-            ) + f"follow-unfollow-user/"
+            reverse("social_network:user-detail", args=[followed_user.id])
+            + f"follow-unfollow-user/"
         )
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
@@ -112,9 +118,7 @@ class AuthenticatedUserApiTests(TestCase):
         lisa_simpson.followed_users.add(self.user)
 
         res = self.client.get(
-            reverse(
-                "social_network:user-detail", args=[self.user.id]
-            ) + f"followers/"
+            reverse("social_network:user-detail", args=[self.user.id]) + f"followers/"
         )
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
@@ -146,9 +150,7 @@ class AuthenticatedUserApiTests(TestCase):
         second_post.likes.add(self.user)
 
         res = self.client.get(
-            reverse(
-                "social_network:user-detail", args=[self.user.id]
-            ) + f"liked-posts/"
+            reverse("social_network:user-detail", args=[self.user.id]) + f"liked-posts/"
         )
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
@@ -159,15 +161,10 @@ class AuthenticatedUserApiTests(TestCase):
         self.assertEqual(res.data, expected_data)
 
     def test_update_user(self):
-        payload = {
-            "email": "lisa_simpson@test.com",
-            "first_name": "Lisa"
-        }
+        payload = {"email": "lisa_simpson@test.com", "first_name": "Lisa"}
 
         res = self.client.patch(
-            reverse(
-                "social_network:user-detail", args=[self.user.id]
-            ),
+            reverse("social_network:user-detail", args=[self.user.id]),
             data=payload,
         )
 
@@ -180,9 +177,7 @@ class AuthenticatedUserApiTests(TestCase):
 
     def test_delete_user(self):
         res = self.client.delete(
-            reverse(
-                "social_network:user-detail", args=[self.user.id]
-            ),
+            reverse("social_network:user-detail", args=[self.user.id]),
         )
 
         self.assertEqual(res.status_code, status.HTTP_204_NO_CONTENT)
