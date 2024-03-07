@@ -1,3 +1,4 @@
+from drf_spectacular.utils import extend_schema, OpenApiParameter
 from rest_framework import generics, status, mixins
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -123,6 +124,24 @@ class UserViewSet(
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    # For documentation purposes only
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                "first_name",
+                type={"type": "list", "items": {"type": "string"}},
+                description="Filter by user first name (ex. ?first_name=Bart)"
+            ),
+            OpenApiParameter(
+                "last_name",
+                type={"type": "list", "items": {"type": "string"}},
+                description="Filter by user last name (ex. ?last_name=Simpson)"
+            )
+        ]
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
 
 class PostViewSet(ModelViewSet):
     serializer_class = PostSerializer
@@ -138,11 +157,9 @@ class PostViewSet(ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        followed_posts = Post.objects.filter(
-            owner__in=user.followed_users.all()
+        queryset = Post.objects.filter(
+            owner__in=[*user.followed_users.all(), user]
         ).filter(published=True)
-        user_posts = Post.objects.filter(owner=user)
-        queryset = followed_posts | user_posts
 
         tag_slugs = self.request.query_params.getlist("tag_slug")
 
@@ -192,6 +209,20 @@ class PostViewSet(ModelViewSet):
         serializer.save(post_id=post.id)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    # For documentation purposes only
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                "tag_slugs",
+                type={"type": "list", "items": {"type": "string"}},
+                description="Filter by tags "
+                            "(ex. ?tag_slug=simpsons&tag_slug=family)"
+            ),
+        ]
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
 
 class CommentaryViewSet(ModelViewSet):
     serializer_class = CommentarySerializer
@@ -214,3 +245,16 @@ class CommentaryViewSet(ModelViewSet):
         serializer.save(
             owner=self.request.user, post=Post.objects.get(id=post_id)
         )
+
+    # For documentation purposes only
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                "tag_id",
+                type={"type": "number"},
+                description="Filter by particular post (ex. ?post_id=1)"
+            ),
+        ]
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
